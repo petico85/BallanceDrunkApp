@@ -31,16 +31,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private SensorEventListener gyroscopeEventListener;
     private float x=0,y=0,z=0;
     private boolean gyroStart = false;
+    private Bitmap chibiBitmap1;
+    private Bitmap background;
 
 
-    private DrunkGuyCharacter drunkGuy01;
+    private DrunkGuyCharacter drunkGuy01 = null;
 
     public GameSurface(Context context)  {
         super(context);
 
-        //create character
-        Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),R.drawable.chibi1);
-        this.drunkGuy01 = new DrunkGuyCharacter(this,chibiBitmap1,this.getWidth()/2,this.getHeight()/2);//center
+        //beállítjuk a bitmapokat
+        setBitmaps(R.drawable.chibi1,R.drawable.floor01);
 
         // Make Game Surface focusable so it can handle events. .
         this.setFocusable(true);
@@ -51,6 +52,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         //gyrocontrol
         gyroManager(context);
 
+        /*//create character
+        Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),R.drawable.chibi1);
+        this.drunkGuy01 = new DrunkGuyCharacter(this,chibiBitmap1,this.getWidth()/2,this.getHeight()/2);//center*/
 
     }
 
@@ -67,23 +71,28 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
         // Create a listener
         gyroscopeEventListener = new SensorEventListener() {
+
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
 
-                if(gyroStart) {
-                    x += sensorEvent.values[0];
-                    y += sensorEvent.values[1];
-                    z += sensorEvent.values[2];
+                //ha már létrejött az objektum, mivel a gyrosensor előbb kapcsol be mint alindulna a szál
+                //nem kéne a surface-ben lennie ennek
+                if(drunkGuy01 != null) {
 
-                    drunkGuy01.setMovingVector((int) x, (int) -y);
-                    System.out.println("SENSORVALUES X:" + x + ", Y:" + y + " Z:" + z);
-                }
-                else{
-                    x=0;
-                    y=0;
-                    z=0;
-                    drunkGuy01.setMovingVector(0, 0);
-                    drunkGuy01.setNullForces();
+                    if (gyroStart) {
+                        x += sensorEvent.values[0];
+                        y += sensorEvent.values[1];
+                        z += sensorEvent.values[2];
+
+                        drunkGuy01.setMovingVector((int) x, (int) -y);
+                        System.out.println("SENSORVALUES X:" + x + ", Y:" + y + " Z:" + z);
+                    } else {
+                        x = 0;
+                        y = 0;
+                        z = 0;
+                        drunkGuy01.setMovingVector(0, 0);
+                        drunkGuy01.setNullForces();
+                    }
                 }
             }
 
@@ -105,16 +114,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            //gyyroscope le fel kapcsolaása
             gyroStart = !gyroStart;
-            /*int x=  (int)event.getX();
-            int y = (int)event.getY();
-
-            int movingVectorX =x-  this.drunkGuy01.getX() ;
-            int movingVectorY =y-  this.drunkGuy01.getY() ;
-
-            this.drunkGuy01.setMovingVector(movingVectorX,movingVectorY);
-            return true;
-            */
         }
         return false;
     }
@@ -122,6 +123,8 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void draw(Canvas canvas)  {
         super.draw(canvas);
+
+        drawFloor(canvas);
 
         this.drunkGuy01.draw(canvas);
     }
@@ -133,6 +136,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.gameThread = new GameThread(this,holder);
         this.gameThread.setRunning(true);
         this.gameThread.start();
+
+        //csak a futás elkezdése után lesznek értékei a getwidth és gethight függvényeknek
+        //create character
+        this.drunkGuy01 = new DrunkGuyCharacter(this,chibiBitmap1,this.getWidth()/2,this.getHeight()/2);//center
     }
 
     // Implements method of SurfaceHolder.Callback
@@ -156,6 +163,19 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
             }
             retry= true;
         }
+    }
+
+    private void drawFloor(Canvas canvas) {
+
+        for (int i = 0; i < this.getWidth(); i = i + this.background.getWidth()) {
+            for(int i2=0; i2 < this.getHeight(); i2 = i2 + this.background.getHeight())
+                canvas.drawBitmap(this.background, i, i2, null);
+        }
+    }
+
+    private void setBitmaps(int chibiBitmap1ID, int backgroundID) {
+        this.chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),chibiBitmap1ID);
+        this.background = BitmapFactory.decodeResource(getResources(), backgroundID/*R.drawable.floor01*/);
     }
 
 }

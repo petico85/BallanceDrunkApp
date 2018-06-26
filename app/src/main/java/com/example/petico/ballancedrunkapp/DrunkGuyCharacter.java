@@ -15,6 +15,7 @@ public class DrunkGuyCharacter extends GameObject {
     private static final int ROW_LEFT_TO_RIGHT = 2;
     private static final int ROW_BOTTOM_TO_TOP = 3;
     private static final int STAYING = 4;
+    private static final int speedLimit = 20;
 
     // Row index of Image are being used.
     private int rowUsing = STAYING;
@@ -48,7 +49,7 @@ public class DrunkGuyCharacter extends GameObject {
     public DrunkGuyCharacter(GameSurface gameSurface, Bitmap image, int x, int y) {
         super(image, 4, 3, x, y);
 
-        this.gameSurface= gameSurface;
+        this.gameSurface = gameSurface;
 
         this.topToBottoms = new Bitmap[colCount]; // 3
         this.rightToLefts = new Bitmap[colCount]; // 3
@@ -102,44 +103,44 @@ public class DrunkGuyCharacter extends GameObject {
         }
         int moveX = movingVectorX;
         int moveY= movingVectorY;
-        if(moveX > 20) moveX = 20;
-        else if(moveX < -20) moveX = -20;
-        if(moveY > 20) moveY = 20;
-        else if(moveY < -20) moveY = -20;
+
+        //speedlimit
+        if(moveX > speedLimit) moveX = speedLimit;
+        else if(moveX < -speedLimit) moveX = -speedLimit;
+        if(moveY > speedLimit) moveY = speedLimit;
+        else if(moveY < -speedLimit) moveY = -speedLimit;
 
 
         //tehetetlenség
         //ide jön egy fizikai osztály hívás, ami kiszámolja, innentől kezdve a moveX moveY majd csak mozgatási erő lesz nem a konkrét elmozdulás mutatója
 
         drunkPhysics.processMove(moveX,moveY);
-        System.out.println("processedway: " + drunkPhysics.moveX +","+drunkPhysics.moveX);
-        this.x = x +  drunkPhysics.moveX;
-        this.y = y +  drunkPhysics.moveY;
+        System.out.println("processedway: " + drunkPhysics.getMoveX() +","+drunkPhysics.getMoveY());
+        this.x = x +  drunkPhysics.getMoveX();
+        this.y = y +  drunkPhysics.getMoveY();
 
 
         // When the game's character touches the edge of the screen
-
         if(this.x < 0 )  {
             this.x = 0;
-            drunkPhysics.vx=0;
-            drunkPhysics.fx=0;
-            //this.movingVectorX = - this.movingVectorX; //a vector nem változik csak a mozgás akad meg
-        } else if(this.x > this.gameSurface.getWidth() -width)  {
-            this.x= this.gameSurface.getWidth()-width;
-            drunkPhysics.vx=0;
-            drunkPhysics.fx=0;
+            drunkPhysics.setVx(0);
+            drunkPhysics.setFx(0);
+        } else if(this.x > this.gameSurface.getWidth() - width)  {
+            this.x= this.gameSurface.getWidth()- width;
+            drunkPhysics.setVx(0);
+            drunkPhysics.setFx(0);
         }
 
         if(this.y < 0 )  {
             this.y = 0;
-            drunkPhysics.vy=0;
-            drunkPhysics.fy=0;
+            drunkPhysics.setVy(0);
+            drunkPhysics.setFy(0);
 
             //this.movingVectorY = 0; //a vector nem változik csak a mozgás akad meg
         } else if(this.y > this.gameSurface.getHeight()- height)  {
             this.y= this.gameSurface.getHeight()- height;
-            drunkPhysics.vy=0;
-            drunkPhysics.fy=0;
+            drunkPhysics.setVy(0);
+            drunkPhysics.setFy(0);
             //this.movingVectorY = 0; //a vector nem változik csak a mozgás akad meg
         }
 
@@ -188,10 +189,10 @@ public class DrunkGuyCharacter extends GameObject {
      * */
     public void setNullForces()
     {
-        drunkPhysics.vx=0;
-        drunkPhysics.fx=0;
-        drunkPhysics.vy=0;
-        drunkPhysics.fy=0;
+        drunkPhysics.setVx(0);
+        drunkPhysics.setVy(0);
+        drunkPhysics.setFx(0);
+        drunkPhysics.setFy(0);
     }
 
     /**
@@ -208,7 +209,7 @@ public class DrunkGuyCharacter extends GameObject {
         developerPaint.setTextSize(40);
         canvas.drawText("MovingvectorX: " + movingVectorX, 10, 50, developerPaint);
         canvas.drawText("MovingvectorY: " + movingVectorY, 10, 90, developerPaint);
-        canvas.drawText("Speed X: " + (int) drunkPhysics.vx + " m/s", 10, 130, developerPaint);
-        canvas.drawText("Speed Y: " + (int) drunkPhysics.vy + " m/s", 10, 170, developerPaint);
+        canvas.drawText("Speed X: " + (int) drunkPhysics.getVx() + " m/s", 10, 130, developerPaint);
+        canvas.drawText("Speed Y: " + (int) drunkPhysics.getVy() + " m/s", 10, 170, developerPaint);
     }
 }

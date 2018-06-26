@@ -12,14 +12,15 @@ package com.example.petico.ballancedrunkapp;
 
 public class DrunkPhysics {
 
+
     private double weight; //tömeg kilógram
-    public int moveX, moveY;
+    private int moveX, moveY;
     private long lastTime;//egy ciklus egy század másodperc
     private double Fs; //surlódási erő
-    public double fx;
-    public double fy;
-    public double vx;
-    public double vy;
+    private double fx;
+    private double fy;
+    private double vx;
+    private double vy;
     private double Fny; //nyomóreő
     private final double mu = 0.07; //surlódási együttható. default: autógumi szfalton
 
@@ -85,6 +86,55 @@ public class DrunkPhysics {
 
         moveX = meterToPixel(path(time, vx));
         moveY = meterToPixel(path(time, vy));
+    }
+
+
+    public int getMoveX() {
+        return moveX;
+    }
+
+    public void setMoveX(int moveX) {
+        this.moveX = moveX;
+    }
+
+    public int getMoveY() {
+        return moveY;
+    }
+
+    public void setMoveY(int moveY) {
+        this.moveY = moveY;
+    }
+
+    public double getFx() {
+        return fx;
+    }
+
+    public void setFx(double fx) {
+        this.fx = fx;
+    }
+
+    public double getFy() {
+        return fy;
+    }
+
+    public void setFy(double fy) {
+        this.fy = fy;
+    }
+
+    public double getVx() {
+        return vx;
+    }
+
+    public void setVx(double vx) {
+        this.vx = vx;
+    }
+
+    public double getVy() {
+        return vy;
+    }
+
+    public void setVy(double vy) {
+        this.vy = vy;
     }
 
 

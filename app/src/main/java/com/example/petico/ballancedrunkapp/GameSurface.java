@@ -8,6 +8,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
@@ -26,6 +28,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private GameThread gameThread;
 
+
+    private static final int speedLimit = 20;
+
     private SensorManager sensorManager;
     private Sensor gyroscopeSensor;
     private SensorEventListener gyroscopeEventListener;
@@ -34,6 +39,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private Bitmap chibiBitmap1;
     private Bitmap background;
     private Bitmap barTableBitmap;
+    private DrunkPhysics drunkPhysics = null;
 
 
     private DrunkGuyCharacter drunkGuy01 = null;
@@ -93,7 +99,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
                         y = 0;
                         z = 0;
                         drunkGuy01.setMovingVector(0, 0);
-                        drunkGuy01.setNullForces();
+                        setNullForces();
                     }
                 }
             }
@@ -110,6 +116,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
     public void update()  {
+
+        //főszereplőfizikája és ütközés vizsgálata
+        collisionDetection();
 
         this.drunkGuy01.update();
     }
@@ -135,8 +144,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.barTable.draw(canvas);
         //npc
 
+
         //főszereplő
         this.drunkGuy01.draw(canvas);
+
+        //debug
+        drawDeveloperInfos(canvas);
     }
 
     // Implements method of SurfaceHolder.Callback
@@ -153,6 +166,9 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.barTable = new StaticGameObject(barTableBitmap, 1, 1, this.getWidth()-barTableBitmap.getWidth(), 1);
         //create character
         this.drunkGuy01 = new DrunkGuyCharacter(this,chibiBitmap1,this.getWidth()/2,this.getHeight()/2);//center
+
+        //fizika
+        drunkPhysics = new DrunkPhysics(75,drunkGuy01.getHeight());//karakter súly kilógramban/karakter magassága pixelben
 
     }
 
@@ -191,6 +207,79 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),chibiBitmap1ID);
         this.background = BitmapFactory.decodeResource(getResources(), backgroundID/*R.drawable.floor01*/);
         this.barTableBitmap = BitmapFactory.decodeResource(getResources(), barTbaleID);
+    }
+
+
+    private void collisionDetection() {
+        int moveX = drunkGuy01.getMovingVectorX();
+        int moveY = drunkGuy01.getMovingVectorY();
+
+        //speedlimit
+        if(moveX > speedLimit) moveX = speedLimit;
+        else if(moveX < -speedLimit) moveX = -speedLimit;
+        if(moveY > speedLimit) moveY = speedLimit;
+        else if(moveY < -speedLimit) moveY = -speedLimit;
+
+
+        //tehetetlenség
+        //ide jön egy fizikai osztály hívás, ami kiszámolja, innentől kezdve a moveX moveY majd csak mozgatási erő lesz nem a konkrét elmozdulás mutatója
+
+        this.drunkPhysics.processMove(moveX,moveY);
+        System.out.println("processedway: " + drunkPhysics.getMoveX() +","+drunkPhysics.getMoveY());
+        drunkGuy01.setX((int) (drunkGuy01.getX() +  drunkPhysics.getMoveX()));
+        drunkGuy01.setY((int) (drunkGuy01.getY() +  drunkPhysics.getMoveY()));
+
+
+        // When the game's character touches the edge of the screen
+        if(drunkGuy01.getX() < 0 )  {
+            drunkGuy01.setX(0);
+            drunkPhysics.setVx(0);
+            drunkPhysics.setFx(0);
+        } else if(drunkGuy01.getX() > this.getWidth() - drunkGuy01.getWidth())  {
+            drunkGuy01.setX(this.getWidth()- drunkGuy01.getWidth());
+            drunkPhysics.setVx(0);
+            drunkPhysics.setFx(0);
+        }
+
+        if(drunkGuy01.getY() < 0 )  {
+            drunkGuy01.setY(0);
+            drunkPhysics.setVy(0);
+            drunkPhysics.setFy(0);
+        } else if(drunkGuy01.getY() > this.getHeight()- drunkGuy01.getHeight())  {
+            drunkGuy01.setY(this.getHeight()- drunkGuy01.getHeight());
+            drunkPhysics.setVy(0);
+            drunkPhysics.setFy(0);
+        }
+    }
+
+    /**
+     * A karakterre ható erők nullázása
+     * */
+    private void setNullForces()
+    {
+        drunkPhysics.setVx(0);
+        drunkPhysics.setVy(0);
+        drunkPhysics.setFx(0);
+        drunkPhysics.setFy(0);
+    }
+
+
+    /**
+     * csak fejlesztéshez kell kirajzolni
+     * */
+    private void drawDeveloperInfos(Canvas canvas)
+    {
+        Paint developerPaint = new Paint();
+        developerPaint.setColor(Color.RED);
+        //32*32-es megháromszorozva tehát 96/96 a sprite és a közepéről indulunk, a vonal méretét megtíszrezezzük hogy jobban látszon
+        //vector
+        canvas.drawLine((drunkGuy01.getX()+(drunkGuy01.getWidth()/2)),(drunkGuy01.getY()+(drunkGuy01.getHeight()/2)), (drunkGuy01.getX()+(drunkGuy01.getWidth()/2)) + (drunkGuy01.getMovingVectorX()*10),  (drunkGuy01.getY()+(drunkGuy01.getHeight()/2)) + (drunkGuy01.getMovingVectorY()*10), developerPaint);
+        developerPaint.setColor(Color.WHITE);
+        developerPaint.setTextSize(40);
+        canvas.drawText("MovingvectorX: " + drunkGuy01.getMovingVectorX(), 10, 50, developerPaint);
+        canvas.drawText("MovingvectorY: " + drunkGuy01.getMovingVectorY(), 10, 90, developerPaint);
+        canvas.drawText("Speed X: " + (int) drunkPhysics.getVx() + " m/s", 10, 130, developerPaint);
+        canvas.drawText("Speed Y: " + (int) drunkPhysics.getVy() + " m/s", 10, 170, developerPaint);
     }
 
 }

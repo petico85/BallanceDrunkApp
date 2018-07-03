@@ -135,13 +135,10 @@ public class DrunkGuyCharacter extends GameObject {
             this.y = 0;
             drunkPhysics.setVy(0);
             drunkPhysics.setFy(0);
-
-            //this.movingVectorY = 0; //a vector nem változik csak a mozgás akad meg
         } else if(this.y > this.gameSurface.getHeight()- height)  {
             this.y= this.gameSurface.getHeight()- height;
             drunkPhysics.setVy(0);
             drunkPhysics.setFy(0);
-            //this.movingVectorY = 0; //a vector nem változik csak a mozgás akad meg
         }
 
         // rowUsing

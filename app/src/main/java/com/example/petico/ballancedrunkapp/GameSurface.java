@@ -33,15 +33,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     private boolean gyroStart = false;
     private Bitmap chibiBitmap1;
     private Bitmap background;
+    private Bitmap barTableBitmap;
 
 
     private DrunkGuyCharacter drunkGuy01 = null;
+    private StaticGameObject barTable = null;
 
     public GameSurface(Context context)  {
         super(context);
 
         //beállítjuk a bitmapokat
-        setBitmaps(R.drawable.chibi1,R.drawable.floor01);
+        setBitmaps(R.drawable.chibi1,R.drawable.floor01,R.drawable.bar002);
 
         // Make Game Surface focusable so it can handle events. .
         this.setFocusable(true);
@@ -108,6 +110,7 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 
     public void update()  {
+
         this.drunkGuy01.update();
     }
 
@@ -122,10 +125,17 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void draw(Canvas canvas)  {
+        //alap kirajzolása
         super.draw(canvas);
 
+        //padló
         drawFloor(canvas);
 
+        //statikus elemek
+        this.barTable.draw(canvas);
+        //npc
+
+        //főszereplő
         this.drunkGuy01.draw(canvas);
     }
 
@@ -138,8 +148,12 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         this.gameThread.start();
 
         //csak a futás elkezdése után lesznek értékei a getwidth és gethight függvényeknek
+
+        //statikus elemek
+        this.barTable = new StaticGameObject(barTableBitmap, 1, 1, this.getWidth()-barTableBitmap.getWidth(), 1);
         //create character
         this.drunkGuy01 = new DrunkGuyCharacter(this,chibiBitmap1,this.getWidth()/2,this.getHeight()/2);//center
+
     }
 
     // Implements method of SurfaceHolder.Callback
@@ -173,9 +187,10 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    private void setBitmaps(int chibiBitmap1ID, int backgroundID) {
+    private void setBitmaps(int chibiBitmap1ID, int backgroundID, int barTbaleID) {
         this.chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),chibiBitmap1ID);
         this.background = BitmapFactory.decodeResource(getResources(), backgroundID/*R.drawable.floor01*/);
+        this.barTableBitmap = BitmapFactory.decodeResource(getResources(), barTbaleID);
     }
 
 }
